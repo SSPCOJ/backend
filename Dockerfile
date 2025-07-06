@@ -2,16 +2,17 @@ FROM alpine:3.19 AS downloader
 
 WORKDIR /app
 
-RUN apk add --no-cache unzip wget && \
-    wget https://github.com/QingdaoU/OnlineJudgeFE/releases/download/oj_2.7.5/dist.zip && \
-    unzip dist.zip && \
+RUN apk add --no-cache unzip wget jq curl && \
+    LATEST_TAG=$(curl -s https://api.github.com/repos/SSPCOJ/frontend/releases/latest | jq -r '.tag_name') && \
+    wget https://github.com/SSPCOJ/frontend/releases/download/${LATEST_TAG}/dist.zip && \
+    unzip dist.zip -d dist && \
     rm -f dist.zip
 
 FROM python:3.12-alpine
 ARG TARGETARCH
 ARG TARGETVARIANT
 
-ENV OJ_ENV production
+ENV OJ_ENV=production
 WORKDIR /app
 
 COPY ./deploy/requirements.txt /app/deploy/
